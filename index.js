@@ -1,14 +1,14 @@
 const http = require("http");
 const server = http.createServer((req,res) => {
-    if(req.url === '/') {
+    console.log('method: ', req.method)
+    console.log('url: ', req.url)
+    console.log('user agent: ', req.headers['user-agent']);
+    if(req.url === '/' && req.method === 'GET') {
         res.writeHead(200, {"content-type": 'text/html'});
-        res.end('Home route')
-    } else if (req.url === '/health') {
-        res.writeHead(200, {"content-type": 'text/html'});
-        res.end('ok')
+        res.end('Welcome Home');
     } else {
         res.writeHead(404, {"content-type": 'text/html'});
-        res.end('<h1>404 - Not Found</h1>')
+        res.end('<h1>404 - Not Found</h1>');
     }
 });
 
