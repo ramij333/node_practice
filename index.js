@@ -1,32 +1,35 @@
-const http = require('http');
+//day-7
 
+const http = require('http');
+const url = require('url');
 const server = http.createServer((req,res) => {
-    if(req.url === "/health" && req.method === "GET") {
+
+    let parsedUrl = url.parse(req.url, true)
+    let pathName = parsedUrl.pathname
+    let queryName = parsedUrl.query
+    
+
+    if(req.url === "/api/time" && req.method === "GET") {
+        let d = new Date()
+        let currentTime = d.toISOString();
+        res.writeHead(200,{"content-type" : "application/json"})
+        res.end(JSON.stringify({"now" : currentTime}))
+        return
+    }
+    else if(pathName && pathName === "/api/user" && req.method === "GET" && queryName.name) {
         res.writeHead(200, {"content-type" : "application/json"})
-        res.end(JSON.stringify({"status"  : "ok", "message" : "server is alive"}))
+        res.end(JSON.stringify({"user" : `${queryName.name}`, "status" : "found"}))
+        return
+    } else {
+        res.writeHead(404, {'content-type' : 'text/plain'})
+        res.end('not found')
         return
     }
-    if(req.url ==="/echo" && req.method === "POST") {
-        let receivedData = ''
-        req.on('data', (chunk) => {
-            receivedData += chunk
-        })
-        req.on( 'end', () =>{
-            res.writeHead(200,{"content-type" : "application/json"})
-            res.end(JSON.stringify(
-                {
-                    "recieved" : true,
-                    "data" : `${receivedData}`
-                }
-            ))
-        }           
-        )      
-        return
-    }
+
 })
 
 server.listen(3000, () => {
-    console.log("server running on port 3000")
+    console.log('server is running on port 3000')
 })
 
 
@@ -34,6 +37,40 @@ server.listen(3000, () => {
 
 
 
+
+
+
+//day-6
+// const http = require('http');
+
+// const server = http.createServer((req,res) => {
+//     if(req.url === "/health" && req.method === "GET") {
+//         res.writeHead(200, {"content-type" : "application/json"})
+//         res.end(JSON.stringify({"status"  : "ok", "message" : "server is alive"}))
+//         return
+//     }
+//     if(req.url ==="/echo" && req.method === "POST") {
+//         let receivedData = ''
+//         req.on('data', (chunk) => {
+//             receivedData += chunk
+//         })
+//         req.on( 'end', () =>{
+//             res.writeHead(200,{"content-type" : "application/json"})
+//             res.end(JSON.stringify(
+//                 {
+//                     "recieved" : true,
+//                     "data" : `${receivedData}`
+//                 }
+//             ))
+//         }           
+//         )      
+//         return
+//     }
+// })
+
+// server.listen(3000, () => {
+//     console.log("server running on port 3000")
+// })
 
 
 
