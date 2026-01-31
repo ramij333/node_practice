@@ -1,43 +1,68 @@
-//day-7
+//day-8
 
 const http = require('http');
-const url = require('url');
-const server = http.createServer((req,res) => {
+const url = require('url')
 
-    let parsedUrl = url.parse(req.url, true)
+const server = http.createServer((req, res) => {
+    let parsedUrl = url.parse(req.url, true);
     let pathName = parsedUrl.pathname
-    let queryName = parsedUrl.query
-    
-
-    if(req.url === "/api/time" && req.method === "GET") {
-        let d = new Date()
-        let currentTime = d.toISOString();
-        res.writeHead(200,{"content-type" : "application/json"})
-        res.end(JSON.stringify({"now" : currentTime}))
-        return
-    }
-    else if(pathName && pathName === "/api/user" && req.method === "GET" && queryName.name) {
-        res.writeHead(200, {"content-type" : "application/json"})
-        res.end(JSON.stringify({"user" : `${queryName.name}`, "status" : "found"}))
-        return
+    let pathNameArr = pathName.split('/')
+    if (pathNameArr[1] === 'api' && pathNameArr[2] === "user" && req.method === 'GET') {
+        if (pathNameArr[3] && pathNameArr[3].length <3) {
+            res.writeHead(200, {"content-type" : "application/json"})
+            res.end(JSON.stringify({"id" : pathNameArr[3], "message" : "user profile found"}))
+            return
+        } else {
+            res.writeHead(400, {'content-type' : 'text/plain'})
+            res.end('no user found')
+            return
+        }       
+        
     } else {
         res.writeHead(404, {'content-type' : 'text/plain'})
-        res.end('not found')
-        return
+            res.end('not found')
+            return
     }
-
 })
 
 server.listen(3000, () => {
-    console.log('server is running on port 3000')
+    console.log('server running on port 3000')
 })
 
 
+//day-7
 
+// const http = require('http');
+// const url = require('url');
+// const server = http.createServer((req,res) => {
 
+//     let parsedUrl = url.parse(req.url, true)
+//     let pathName = parsedUrl.pathname
+//     let queryName = parsedUrl.query
+    
 
+//     if(req.url === "/api/time" && req.method === "GET") {
+//         let d = new Date()
+//         let currentTime = d.toISOString();
+//         res.writeHead(200,{"content-type" : "application/json"})
+//         res.end(JSON.stringify({"now" : currentTime}))
+//         return
+//     }
+//     else if(pathName && pathName === "/api/user" && req.method === "GET" && queryName.name) {
+//         res.writeHead(200, {"content-type" : "application/json"})
+//         res.end(JSON.stringify({"user" : `${queryName.name}`, "status" : "found"}))
+//         return
+//     } else {
+//         res.writeHead(404, {'content-type' : 'text/plain'})
+//         res.end('not found')
+//         return
+//     }
 
+// })
 
+// server.listen(3000, () => {
+//     console.log('server is running on port 3000')
+// })
 
 
 //day-6
