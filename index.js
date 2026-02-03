@@ -1,35 +1,89 @@
-//day 10
-const http = require('http');
+//day 11
+
+const http = require('http')
 const url = require('url')
 
-function sendJSON(res, statusCode, data) {
-    res.writeHead(statusCode, {"content-type" : "application/json"})
+function sendJSON(res, status, data) {
+    res.writeHead(status, {"content-type" : "application/json"})
     res.end(JSON.stringify(data))
 }
-const server = http.createServer((req, res) => {
-    let parsedUrl = url.parse(req.url, true);
-    let pathName = parsedUrl.pathname
-    let pathNameArr = pathName.split('/')
-    if (pathNameArr[1] === 'api' && pathNameArr[2] === "user" && req.method === 'GET') {
-        if (pathNameArr[3] && pathNameArr[3].length <3 &&  isNaN(pathNameArr[3]) === false) {
-            sendJSON(res, 200, {"id" : pathNameArr[3], "message" : "user profile found"})
-            return
+
+const server = http.createServer((req,res) => {
+    parsedUrl = url.parse(req.url, true)
+    queryData = parsedUrl.query
+    pathName = parsedUrl.pathname
+    pathNameArr = pathName.split('/')
+    
+
+    if(pathNameArr[1] === 'api' && pathNameArr[2] === "user" && req.method === "GET") {
+        if(pathNameArr[3]) {
+            if (isNaN(pathNameArr[3]) === true) {
+                return sendJSON(res, 400, {"error" : "ID must be a number"})
+            } else {
+                if(queryData.name) {
+                   return sendJSON(res, 200, {
+                        "id" : pathNameArr[3],
+                        "name" : queryData.name,
+                        "message" : "Profile loaded"
+                    })
+                } else {
+                    return sendJSON(res, 400, {
+                        "error" : "name query is required"
+                    })
+                }
+            }
         } else {
-            sendJSON(res, 404, {"message" : "no user found"})
-            return
-        }              
-    } else if (pathNameArr[1] === 'api' && pathNameArr[2] === "health" && req.method === 'GET') {
-        sendJSON(res, 200, {"status" : "ok"})
-    }   
-    else {
-        sendJSON(res, 400, {"error" : "Route not found"})
-            return
-    }
+            return sendJSON(res, 400, {"error" : "User ID required"})
+        }
+    } else {
+        if (req.method != "GET") {
+          return sendJSON(res, 405, {"error" : "Method not allowed"})
+        } else {
+            return sendJSON(res, 404, {"error" : "Route not found"})
+        } 
+    } 
+
 })
 
 server.listen(3000, () => {
-    console.log('server running on port 3000')
+    console.log("server is running on port 3000")
 })
+
+
+
+
+//day 10
+// const http = require('http');
+// const url = require('url')
+
+// function sendJSON(res, statusCode, data) {
+//     res.writeHead(statusCode, {"content-type" : "application/json"})
+//     res.end(JSON.stringify(data))
+// }
+// const server = http.createServer((req, res) => {
+//     let parsedUrl = url.parse(req.url, true);
+//     let pathName = parsedUrl.pathname
+//     let pathNameArr = pathName.split('/')
+//     if (pathNameArr[1] === 'api' && pathNameArr[2] === "user" && req.method === 'GET') {
+//         if (pathNameArr[3] && pathNameArr[3].length <3 &&  isNaN(pathNameArr[3]) === false) {
+//             sendJSON(res, 200, {"id" : pathNameArr[3], "message" : "user profile found"})
+//             return
+//         } else {
+//             sendJSON(res, 404, {"message" : "no user found"})
+//             return
+//         }              
+//     } else if (pathNameArr[1] === 'api' && pathNameArr[2] === "health" && req.method === 'GET') {
+//         sendJSON(res, 200, {"status" : "ok"})
+//     }   
+//     else {
+//         sendJSON(res, 400, {"error" : "Route not found"})
+//             return
+//     }
+// })
+
+// server.listen(3000, () => {
+//     console.log('server running on port 3000')
+// })
 
 
 
