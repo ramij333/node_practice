@@ -1,55 +1,116 @@
-//day 11
+//day-12
 
-const http = require('http')
-const url = require('url')
+const http = require('http');
+const url = require('url');
 
 function sendJSON(res, status, data) {
     res.writeHead(status, {"content-type" : "application/json"})
     res.end(JSON.stringify(data))
 }
 
-const server = http.createServer((req,res) => {
-    parsedUrl = url.parse(req.url, true)
-    queryData = parsedUrl.query
-    pathName = parsedUrl.pathname
-    pathNameArr = pathName.split('/')
+const server = http.createServer((req, res) => {
+    const parsedUrl = url.parse(req.url, true)
+    const pathName = parsedUrl.pathname
+    const pathNameArr = pathName.split('/')
+    if (pathNameArr[1] === 'api' && pathNameArr[2] === 'user') {
+        if(req.method === "POST") {
+            let body = ''
+            req.on("data", chunk => {
+                body += chunk
+            })
+            req.on("end", () => {
+                let trimmedData = body.trim()
+                let data 
+                if(trimmedData.length<1) {
+                    return sendJSON(res, 400, {"error" : "Request body required"})
+                } else {
+                    try {
+                        data = JSON.parse(body)
+                    } catch (error) {
+                        return sendJSON(res, 400, {"error" : "Invalid JSON"})
+                    }
+                    
+                }              
+                if (!data.name) {
+                    return sendJSON(res, 400, {"error" : "Name is required"})
+                }
+                else {
+                    return sendJSON(res, 201, {
+                        "created" : true,
+                        "user" : {
+                            "id" : 1,
+                            "name" : data.name
+                        }
+                    })
+                } 
+                
+            })
+            return
+        }
+        if (req.method != "POST") {
+            return sendJSON(res, 405, {"error" : "Method not allowed"})
+        }
+        
+    } else {
+        return sendJSON(res, 404, {"error" : "Route not found"})
+    }
+})
+server.listen(3000, () => {
+    console.log('server listening on port 3000')
+})
+
+
+
+//day 11
+
+// const http = require('http')
+// const url = require('url')
+
+// function sendJSON(res, status, data) {
+//     res.writeHead(status, {"content-type" : "application/json"})
+//     res.end(JSON.stringify(data))
+// }
+
+// const server = http.createServer((req,res) => {
+//     parsedUrl = url.parse(req.url, true)
+//     queryData = parsedUrl.query
+//     pathName = parsedUrl.pathname
+//     pathNameArr = pathName.split('/')
     
 
-    if(pathNameArr[1] === 'api' && pathNameArr[2] === "user" && req.method === "GET") {
-        if(pathNameArr[3]) {
-            if (isNaN(pathNameArr[3]) === true) {
-                return sendJSON(res, 400, {"error" : "ID must be a number"})
-            } else {
-                if(queryData.name) {
-                   return sendJSON(res, 200, {
-                        "id" : pathNameArr[3],
-                        "name" : queryData.name,
-                        "message" : "Profile loaded"
-                    })
-                } else {
-                    return sendJSON(res, 400, {
-                        "error" : "name query is required"
-                    })
-                }
-            }
-        } else {
-            return sendJSON(res, 400, {"error" : "User ID required"})
-        }
-    } else {
-        if (req.method != "GET") {
-          return sendJSON(res, 405, {"error" : "Method not allowed"})
-        } else {
-            return sendJSON(res, 404, {"error" : "Route not found"})
-        } 
-    } 
+//     if(pathNameArr[1] === 'api' && pathNameArr[2] === "user" && req.method === "GET") {
+//         if(pathNameArr[3]) {
+//             if (isNaN(pathNameArr[3]) === true) {
+//                 return sendJSON(res, 400, {"error" : "ID must be a number"})
+//             } else {
+//                 if(queryData.name) {
+//                    return sendJSON(res, 200, {
+//                         "id" : pathNameArr[3],
+//                         "name" : queryData.name,
+//                         "message" : "Profile loaded"
+//                     })
+//                 } else {
+//                     return sendJSON(res, 400, {
+//                         "error" : "name query is required"
+//                     })
+//                 }
+//             }
+//         } else {
+//             return sendJSON(res, 400, {"error" : "User ID required"})
+//         }
+//     } else {
+//         if (req.method != "GET") {
+//           return sendJSON(res, 405, {"error" : "Method not allowed"})
+//         } else {
+//             return sendJSON(res, 404, {"error" : "Route not found"})
+//         } 
+//     } 
 
-})
+// })
 
-server.listen(3000, () => {
-    console.log("server is running on port 3000")
-})
-
-
+// server.listen(3000, () => {
+//     console.log("server is running on port 3000")
+// })
 
 
 //day 10
