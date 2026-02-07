@@ -1,5 +1,4 @@
-
-//day-13
+//day-14
 
 const http = require('http')
 const url = require('url')
@@ -12,17 +11,40 @@ const server = http.createServer((req, res) => {
     const parsedUrl = url.parse(req.url, true)
     const pathName = parsedUrl.pathname
     const pathNameArr = pathName.split('/')
-    const [firstParam, secondparam, thirdParam] = pathNameArr
+    const [, secondparam, thirdParam, id] = pathNameArr
     if(secondparam === 'api' && thirdParam === 'user') {
         if (req.method === "GET") {
-        
-            return sendJSON(res, 200, {
-                "users" : [
-                    {"id" : 1, "name" : "Ramij"},
-                    {"id" : 2, "name" : "Knight"}
-                ]
-            })
-        
+            if (pathNameArr.length>3) {
+                if(id) {
+                    if(isNaN(id)) {
+                        return sendJSON(res, 400, {"error" : "Id must be a number"})
+                    } else if (id == 1) {
+                        return sendJSON(res, 200, {
+                            "id" : id,
+                            "name" : "Ramij"
+                        })
+                    } else if(id == 99) {
+                        return sendJSON(res, 404, {
+                            "error" : "User not found"
+                        })
+                    } else {
+                        return sendJSON(res, 200, {
+                            "id" : id,
+                            "name" : "unknown"
+                        })
+                    }
+
+                } else {
+                    return sendJSON(res, 400, {"error" : "User ID required"})
+                }
+            } else {
+                return sendJSON(res, 200, {
+                    "users" : [
+                        {"id" : 1, "name" : "Ramij"},
+                        {"id" : 2, "name" : "Knight"}
+                    ]
+                })
+            }       
         }
         else if(req.method === "POST") {
         
@@ -35,7 +57,7 @@ const server = http.createServer((req, res) => {
                 let trimmedData = data.trim()
                 if(trimmedData.length<1) {
                     return sendJSON(res, 400, {
-                        "error" : "Request Body Required"
+                        "error" : "Request body required"
                     })
                 } else {
                     try {
@@ -52,8 +74,7 @@ const server = http.createServer((req, res) => {
                 } else {
                     return sendJSON(res, 400, {"error" : "Name is required"})
                 }
-                
-                
+               
             })
         }
         else {
@@ -63,13 +84,86 @@ const server = http.createServer((req, res) => {
     else {
         return sendJSON(res, 404, {"error" : "Route not found"})
     }
-    
-    
+   
 })
 
 server.listen(3000, () => {
     console.log('server is running on port 3000')
 })
+
+
+
+//day-13
+
+// const http = require('http')
+// const url = require('url')
+
+// function sendJSON(res, status, data) {
+//     res.writeHead(status, {"content-type" : "application/json"})
+//     res.end(JSON.stringify(data))
+// }
+// const server = http.createServer((req, res) => {
+//     const parsedUrl = url.parse(req.url, true)
+//     const pathName = parsedUrl.pathname
+//     const pathNameArr = pathName.split('/')
+//     const [firstParam, secondparam, thirdParam] = pathNameArr
+//     if(secondparam === 'api' && thirdParam === 'user') {
+//         if (req.method === "GET") {
+        
+//             return sendJSON(res, 200, {
+//                 "users" : [
+//                     {"id" : 1, "name" : "Ramij"},
+//                     {"id" : 2, "name" : "Knight"}
+//                 ]
+//             })
+        
+//         }
+//         else if(req.method === "POST") {
+        
+//             let data = ''
+            
+//             req.on('data', (chunk) => {
+//                 data += chunk
+//             })
+//             req.on('end', () => {
+//                 let trimmedData = data.trim()
+//                 if(trimmedData.length<1) {
+//                     return sendJSON(res, 400, {
+//                         "error" : "Request Body Required"
+//                     })
+//                 } else {
+//                     try {
+//                         data = JSON.parse(data)
+//                     } catch (error) {
+//                         return sendJSON(res, 400, {"error" : "Invalid JSON"})
+//                     }
+//                 }
+//                 if(data.name) {
+//                     return sendJSON(res, 201, {
+//                         "created" : true,
+//                         "user": {"id" : 3, "name" : data.name}
+//                     })
+//                 } else {
+//                     return sendJSON(res, 400, {"error" : "Name is required"})
+//                 }
+                
+                
+//             })
+//         }
+//         else {
+//             return sendJSON(res, 405, {"error" : "method not allowed"})
+//         }
+//     }
+//     else {
+//         return sendJSON(res, 404, {"error" : "Route not found"})
+//     }
+    
+    
+// })
+
+// server.listen(3000, () => {
+//     console.log('server is running on port 3000')
+// })
 
 
 //day-12
