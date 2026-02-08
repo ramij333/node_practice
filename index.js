@@ -1,57 +1,143 @@
-//day-15
-
+//day-16
 const http = require('http')
 const url = require('url')
 
+const users = [
+    {
+        "id" : 1,
+        "name" : "Ramij",
+        "email" : "ramij@example.com",
+        "role": "admin"
+    },
+    {
+        "id" : 2,
+        "name" : "Aelric",
+        "email" : "aelric@example.cpm",
+        "role": 'user'
+    }
+]
 
-function sendJSON(res, statuts, data) {
-    res.writeHead(statuts, {"content-type" : "application/json"})
-    res.end(JSON.stringify(data))
+function checkUser(id) {
+    return users.find( u => u.id == id)
 }
-const server = http.createServer((req,res) => {
+
+function sendJSON(res, status, data) {
+    res.writeHead(status, {"content-type" : "application/json"})
+    res.end(JSON.stringify(data))
+
+}
+const server = http.createServer((req, res) => {
     const parsedUrl = url.parse(req.url, true)
     const pathName = parsedUrl.pathname
     const queryName = parsedUrl.query
     const pathNameArr = pathName.split('/')
-    const [, api, resource, id] = pathNameArr
-    
-        if(api === 'api' && resource === 'users') {
-            if(req.method === "GET") {
-                if( JSON.stringify(queryName) != '{}') {
-                    if(queryName.role == "user") {
-                        return sendJSON(res, 200, {
-                            "users": [
-                                { "id": 2, "name": "Knight", "role": "user" },
-                                { "id": 3, "name": "Ghost", "role": "user" }
-                            ]
-                        })
-                    } else if (('role' in queryName) && !queryName.role) {
-                        return sendJSON(res, 400, {
-                            "error" : "Role query cannot be empty"
-                        })
+    const [, firstParam, secondParam, thirdParam] = pathNameArr
+
+    if(firstParam === "api" && secondParam === "user" && req.method === "GET") {
+        if(pathNameArr.length === 4) {
+            if(thirdParam && !isNaN(thirdParam)) {
+                const user = checkUser(thirdParam)
+                if(JSON.stringify(queryName) != "{}" && queryName.details == "true") {
+                    if(user) {
+                        return sendJSON(res, 200, user)
                     } else {
-                        return sendJSON(res, 200, {})
+                        return sendJSON(res, 404, {
+                            "error" : "User and user details not found"
+                        })
                     }
-                } else {
+                }
+                if(user) {
                     return sendJSON(res, 200, {
-                        "users": [
-                            { "id": 1, "name": "Ramij", "role": "admin" },
-                            { "id": 2, "name": "Knight", "role": "user" },
-                            { "id": 3, "name": "Ghost", "role": "user" }
-                        ]
+                        "id" : user.id,
+                        "name" : user.name
+                    })
+                } else {
+                    return sendJSON(res, 404, {
+                        "error" : "User not found"
                     })
                 }
             } else {
-                return sendJSON(res, 405, {"error" : "Method not allowed"})
+                return sendJSON(res, 400, {
+                    "error" : "User ID must be a number"
+                })
             }
+        } else {
+            return sendJSON(res, 200, {
+                "users" : users
+            })
         }
+        
+    } else if(firstParam === "api" && secondParam === "user" && req.method != "GET") {
+        return sendJSON(res, 405, {
+            "error" : "Method not allowed"
+        })
+    } else {
+        return sendJSON(res, 404, {
+            "error" : "Route not found"
+        })
+    }
+
+})
+server.listen(3000, () => {
+    console.log("server running on port 3000")
+})
+
+
+
+// //day-15
+
+// const http = require('http')
+// const url = require('url')
+
+
+// function sendJSON(res, statuts, data) {
+//     res.writeHead(statuts, {"content-type" : "application/json"})
+//     res.end(JSON.stringify(data))
+// }
+// const server = http.createServer((req,res) => {
+//     const parsedUrl = url.parse(req.url, true)
+//     const pathName = parsedUrl.pathname
+//     const queryName = parsedUrl.query
+//     const pathNameArr = pathName.split('/')
+//     const [, api, resource, id] = pathNameArr
+    
+//         if(api === 'api' && resource === 'users') {
+//             if(req.method === "GET") {
+//                 if( JSON.stringify(queryName) != '{}') {
+//                     if(queryName.role == "user") {
+//                         return sendJSON(res, 200, {
+//                             "users": [
+//                                 { "id": 2, "name": "Knight", "role": "user" },
+//                                 { "id": 3, "name": "Ghost", "role": "user" }
+//                             ]
+//                         })
+//                     } else if (('role' in queryName) && !queryName.role) {
+//                         return sendJSON(res, 400, {
+//                             "error" : "Role query cannot be empty"
+//                         })
+//                     } else {
+//                         return sendJSON(res, 200, {})
+//                     }
+//                 } else {
+//                     return sendJSON(res, 200, {
+//                         "users": [
+//                             { "id": 1, "name": "Ramij", "role": "admin" },
+//                             { "id": 2, "name": "Knight", "role": "user" },
+//                             { "id": 3, "name": "Ghost", "role": "user" }
+//                         ]
+//                     })
+//                 }
+//             } else {
+//                 return sendJSON(res, 405, {"error" : "Method not allowed"})
+//             }
+//         }
 
     
-})
+// })
 
-server.listen(3000, () => {
-    console.log('server is running on port 3000')
-})
+// server.listen(3000, () => {
+//     console.log('server is running on port 3000')
+// })
 
 //day-14
 
