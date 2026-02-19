@@ -1,25 +1,78 @@
-//day-16
-const http = require('http')
+
+const http = require('http');
 const url = require('url')
 
+let finalArr 
 const users = [
     {
-        "id" : 1,
-        "name" : "Ramij",
-        "email" : "ramij@example.com",
-        "role": "admin"
+        id : 1,
+        name : "Ramij",
+        email : "ramij@example.com",
+        role: "admin",
+        active : true
     },
     {
-        "id" : 2,
-        "name" : "Aelric",
-        "email" : "aelric@example.cpm",
-        "role": 'user'
+        id : 2,
+        name : "Aelric",
+        email : "aelric@example.cpm",
+        role: 'user',
+        active : true
+    }, 
+    {
+        id : 3,
+        name : "knight",
+        email : "email@example.com",
+        role : "user",
+        active : false
     }
 ]
 
-function checkUser(id) {
-    return users.find( u => u.id == id)
+function checkUserById(id, dataArray) {
+    if (!Array.isArray(dataArray)) return [];
+    return dataArray.find( u => u.id == id)
 }
+
+function checkUserByrole(role, dataArray) {
+    if (!Array.isArray(dataArray)) return [];
+    return dataArray.filter (u => u.role == role)
+}
+
+function checkUserByStatus(status, dataArray) {
+    if (!Array.isArray(dataArray)) return [];
+    return dataArray.filter(u => u.active == status)
+}
+
+function getFilteredArray(targetArr, queryFilterArr) {
+    if (!Array.isArray(targetArr)) return [];
+    if(!Array.isArray(queryFilterArr)) return [];
+    let filteredArr = []
+    let filteredObj = {}
+    for( i of targetArr) {
+        console.log('i: ',i)
+        let objectKeys = Object.keys(i)
+        console.log('objectKeys: ', objectKeys)
+        for (j of queryFilterArr) {
+            console.log('j: ', j)
+            console.log('type of j: ', typeof j)
+            if(objectKeys.includes(j)) {
+                
+                
+                filteredObj[j] = i[j]
+                console.log('filteredObj: ', filteredObj)
+            } else {
+                continue
+            }
+
+        }
+        filteredArr.push(filteredObj)
+        filteredObj = {}
+        console.log('filteredArr: ', filteredArr)
+    }
+    return filteredArr
+}
+
+
+
 
 function sendJSON(res, status, data) {
     res.writeHead(status, {"content-type" : "application/json"})
@@ -32,11 +85,12 @@ const server = http.createServer((req, res) => {
     const queryName = parsedUrl.query
     const pathNameArr = pathName.split('/')
     const [, firstParam, secondParam, thirdParam] = pathNameArr
-
-    if(firstParam === "api" && secondParam === "user" && req.method === "GET") {
+    
+    
+    if(firstParam === "api" && secondParam === "users" && req.method === "GET") {
         if(pathNameArr.length === 4) {
             if(thirdParam && !isNaN(thirdParam)) {
-                const user = checkUser(thirdParam)
+                const user = checkUserById(thirdParam, users)
                 if(JSON.stringify(queryName) != "{}" && queryName.details == "true") {
                     if(user) {
                         return sendJSON(res, 200, user)
@@ -62,9 +116,91 @@ const server = http.createServer((req, res) => {
                 })
             }
         } else {
-            return sendJSON(res, 200, {
-                "users" : users
-            })
+            if(JSON.stringify(queryName) != "{}") {
+                
+                let queryKeyArr = Object.keys(queryName)
+                console.log(queryName)
+                let paramLength = queryKeyArr.length
+                if (paramLength == 2) {
+                    let roleExists = queryKeyArr.includes('role')
+                    
+                    let statusExists = queryKeyArr.includes('active')
+                    
+                    if(roleExists && statusExists) {
+                        if(queryName.role.trim() == '') {
+                            return sendJSON(res, 400, {'error' : "role can not be empty"})
+                        } else if(queryName.role != 'user' && queryName.role != 'admin') {
+                            return sendJSON(res, 400, {"error" : "Invalid role"})
+                        }
+                         else
+                        if(queryName.active.trim() == '') {
+                            return sendJSON(res, 400, {'error' : 'status can not be empty'})
+                        } else if(queryName.active != 'true' && queryName.active != 'false') {
+                            return sendJSON(res, 400, {"error" : "Invalid active status"})
+                        }
+                        else {
+                            let userByRoleArr = checkUserByrole( queryName.role, users)
+                            let userByRoleStatusArr = checkUserByStatus(JSON.parse(queryName.active), userByRoleArr)
+                            
+                            finalArr = userByRoleStatusArr
+                            console.log('finalArr: ', finalArr)
+                            return sendJSON(res, 200, {"users" : userByRoleStatusArr})
+
+                        }
+                    } else {
+                        return sendJSON(res, 400, {"error": "Invalid query"})
+                    }
+                } else if (paramLength === 1) {
+                    
+                    let roleExists = queryKeyArr.includes('role')
+                    let statusExists = queryKeyArr.includes('active')
+                    let fieldExists = queryKeyArr.includes('fields')
+                   
+                    if(roleExists) {
+
+                        if(queryName.role.trim() == '') {
+                            return sendJSON(res, 400, {'error' : "role can not be empty"})
+                        } else if(queryName.role != 'user' && queryName.role != 'admin') {
+                            return sendJSON(res, 400, {"error" : "Invalid role"})
+                        } else {
+                            let userByRoleArr = checkUserByrole( queryName.role, users)
+                            finalArr = userByRoleArr
+                            console.log('finalArr: ', finalArr)
+                            return sendJSON(res, 200, {"users" : userByRoleArr})
+                        }
+                        
+                    } else
+                    if (statusExists) {
+                        
+                        if(queryName.active.trim() == '') {
+                            return sendJSON(res, 400, {'error' : 'active status can not be empty'})
+                        } else if(queryName.active != 'true' && queryName.active != 'false') {
+                           
+                            return sendJSON(res, 400, {"error" : "Invalid active status"})
+                        } else {
+                            
+                            let userByStatusArr = checkUserByStatus(JSON.parse(queryName.active), users)
+                            finalArr = userByStatusArr
+                            console.log('finalArr: ', finalArr)
+                            return sendJSON(res, 200, {"users" : userByStatusArr})
+                        }
+                    } else
+                    if(fieldExists) {
+                        let fieldQueryValue = queryName.fields.replace(/\s/g, "");
+                        let fieldQueryArr = fieldQueryValue.split(',')
+                        console.log('fieldQueryArr: ', fieldQueryArr)
+                        console.log('finalArr', finalArr)
+                        let filteredUsers = getFilteredArray(finalArr, fieldQueryArr)
+                        return sendJSON(res, 200, {"filtered Users" : filteredUsers})
+                    } else {
+                        return sendJSON(res, 400, {"error" : "Invalid query"})
+                    }
+                } else {
+                    return sendJSON(res, 400, {"error" : "Invalid query"})
+                }
+
+            }
+           return sendJSON(res, 200, {users})
         }
         
     } else if(firstParam === "api" && secondParam === "user" && req.method != "GET") {
@@ -81,6 +217,94 @@ const server = http.createServer((req, res) => {
 server.listen(3000, () => {
     console.log("server running on port 3000")
 })
+
+
+
+
+
+//day-16
+// const http = require('http')
+// const url = require('url')
+
+// const users = [
+//     {
+//         "id" : 1,
+//         "name" : "Ramij",
+//         "email" : "ramij@example.com",
+//         "role": "admin"
+//     },
+//     {
+//         "id" : 2,
+//         "name" : "Aelric",
+//         "email" : "aelric@example.cpm",
+//         "role": 'user'
+//     }
+// ]
+
+// function checkUser(id) {
+//     return users.find( u => u.id == id)
+// }
+
+// function sendJSON(res, status, data) {
+//     res.writeHead(status, {"content-type" : "application/json"})
+//     res.end(JSON.stringify(data))
+
+// }
+// const server = http.createServer((req, res) => {
+//     const parsedUrl = url.parse(req.url, true)
+//     const pathName = parsedUrl.pathname
+//     const queryName = parsedUrl.query
+//     const pathNameArr = pathName.split('/')
+//     const [, firstParam, secondParam, thirdParam] = pathNameArr
+
+//     if(firstParam === "api" && secondParam === "user" && req.method === "GET") {
+//         if(pathNameArr.length === 4) {
+//             if(thirdParam && !isNaN(thirdParam)) {
+//                 const user = checkUser(thirdParam)
+//                 if(JSON.stringify(queryName) != "{}" && queryName.details == "true") {
+//                     if(user) {
+//                         return sendJSON(res, 200, user)
+//                     } else {
+//                         return sendJSON(res, 404, {
+//                             "error" : "User and user details not found"
+//                         })
+//                     }
+//                 }
+//                 if(user) {
+//                     return sendJSON(res, 200, {
+//                         "id" : user.id,
+//                         "name" : user.name
+//                     })
+//                 } else {
+//                     return sendJSON(res, 404, {
+//                         "error" : "User not found"
+//                     })
+//                 }
+//             } else {
+//                 return sendJSON(res, 400, {
+//                     "error" : "User ID must be a number"
+//                 })
+//             }
+//         } else {
+//             return sendJSON(res, 200, {
+//                 "users" : users
+//             })
+//         }
+        
+//     } else if(firstParam === "api" && secondParam === "user" && req.method != "GET") {
+//         return sendJSON(res, 405, {
+//             "error" : "Method not allowed"
+//         })
+//     } else {
+//         return sendJSON(res, 404, {
+//             "error" : "Route not found"
+//         })
+//     }
+
+// })
+// server.listen(3000, () => {
+//     console.log("server running on port 3000")
+// })
 
 
 
